@@ -1,0 +1,49 @@
+# -----------------------------------------------------------------------------
+# Go
+# -----------------------------------------------------------------------------
+# Ignore compiled binaries (add the name of your module if you compile it)
+/apartment-app
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Go workspace file
+go.work
+go.work.sum
+
+# -----------------------------------------------------------------------------
+# Tailwind CSS
+# -----------------------------------------------------------------------------
+# Ignore the standalone CLI executable (it's a large file, developers should 
+# download their own or you can use a script to fetch it).
+tailwindcss
+tailwindcss-*
+tailwindcss.exe
+
+# -----------------------------------------------------------------------------
+# Environment & Secrets (Crucial!)
+# -----------------------------------------------------------------------------
+# Never commit your database URLs or API keys!
+.env
+.env.*
+!.env.example 
+
+# -----------------------------------------------------------------------------
+# OS & Editor Files
+# -----------------------------------------------------------------------------
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+*.swp
