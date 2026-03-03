@@ -1,12 +1,22 @@
 {{define "content"}}
-    <p class="text-gray-600">Welcome to the shared apartment!</p>
-    
-    <button 
-        hx-get="/ping" 
-        hx-target="#pong-result"
-        class="mt-4 px-4 py-2 bg-indigo-500 text-white rounded hover:bg-indigo-600 transition">
-        Test Server Connection
-    </button>
-    
-    <p id="pong-result" class="mt-4 text-sm font-semibold text-green-600"></p>
+<div class="mb-6">
+    <h2 class="text-xl font-semibold text-gray-800 mb-2">Add a Roommate</h2>
+    <p class="text-sm text-gray-500 mb-4">Register a new user in the database.</p>
+
+    <form hx-post="/users" hx-target="#user-result" hx-swap="innerHTML" class="flex flex-col gap-3">
+
+        <input type="text" name="name" placeholder="Name (e.g., Alex)" required
+            class="px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+
+        <input type="email" name="email" placeholder="Email Address" required
+            class="px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+
+        <button type="submit"
+            class="px-4 py-2 bg-indigo-600 text-white font-semibold rounded hover:bg-indigo-700 transition">
+            Create User
+        </button>
+    </form>
+</div>
+
+<div id="user-result" class="mt-4"></div>
 {{end}}
