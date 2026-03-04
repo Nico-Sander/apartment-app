@@ -35,7 +35,7 @@ func TestCreateUser(t *testing.T) {
 	// 2. Execute the function we want to test
 	name := "Alex"
 	email := "alex@example.com"
-	user, err := CraeteUser(name, email)
+	user, err := CreateUser(name, email)
 
 	// 3. Assertions (Check if it worked)
 	if err != nil {

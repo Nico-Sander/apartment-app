@@ -7,9 +7,10 @@ import (
 )
 
 type User struct {
-	ID    uuid.UUID `json:"id"`
-	Name  string    `json:"name"`
-	Email string    `json:"email"`
+	ID           uuid.UUID `json:"id"`
+	Name         string    `json:"name"`
+	Email        string    `json:"email"`
+	PasswordHash string    `json:"-"` // The "-" ensures the hash is NEVER sent to the frontend accidentally
 }
 
 type Group struct {
