@@ -33,8 +33,8 @@ func GenerateJWT(userID uuid.UUID) (string, error) {
 	// Create the token claims (the data stored inside the token)
 	claims := jwt.MapClaims{
 		"userID": userID.String(),
-		"exp":    time.Now().Add(time.Hour * 72), // Expires in 3 days
-		"iat":    time.Now().Unix(),              // Issued at
+		"exp":    jwt.NewNumericDate(time.Now().Add(time.Hour * 72)), // Expires in 3 days
+		"iat":    jwt.NewNumericDate(time.Now()),                     // Issued at
 	}
 
 	// Create the token with the claims and the signing method (HS256)
@@ -57,8 +57,12 @@ func ValidateJWT(tokenString string) (uuid.UUID, error) {
 		return []byte(secretKey), nil
 	})
 
-	if err != nil || !token.Valid {
-		return uuid.Nil, errors.New("invalid or expired token")
+	if err != nil {
+		return uuid.Nil, err
+	}
+
+	if !token.Valid {
+		return uuid.Nil, errors.New("token parsed successfully but is marked invalid")
 	}
 
 	// Extract the claims
