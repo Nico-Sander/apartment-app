@@ -1,13 +1,28 @@
 {{define "content"}}
 <div class="p-8 max-w-md mx-auto mt-10 bg-indigo-50 rounded-xl shadow border border-indigo-100">
-    <h1 class="text-2xl font-bold text-indigo-800 mb-2">Welcome to the Secret Dashboard!</h1>
-    <p class="text-indigo-600">You bypassed the bouncer because your secure cookie is valid.</p>
-    <p class="mt-4 text-sm text-gray-500">Your verified Database UUID is:</p>
+    <h1 class="text-2xl font-bold text-indigo-800 mb-1">Your Dashboard</h1>
+    <p class="text-xs text-indigo-400 font-mono mb-6">User ID: {{.}}</p>
 
-    <p class="font-mono text-xs bg-white p-2 mt-1 rounded border border-gray-200">{{.}}</p>
+    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-6">
+        <h2 class="text-lg font-bold text-gray-800 mb-2">Create an Apartment</h2>
+        <p class="text-sm text-gray-500 mb-4">Start a new group and invite your roommates.</p>
+
+        <form hx-post="/groups" hx-target="#group-result" class="flex flex-col gap-3">
+
+            <input type="text" name="group_name" placeholder="Apartment Name (e.g. The Batcave)" required
+                class="px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+
+            <button type="submit"
+                class="px-4 py-2 bg-indigo-600 text-white font-semibold rounded hover:bg-indigo-700 transition">
+                Create Group
+            </button>
+        </form>
+
+        <div id="group-result" class="mt-4"></div>
+    </div>
 
     <button hx-post="/logout"
-        class="mt-6 px-4 py-2 bg-red-500 text-white font-semibold rounded hover:bg-red-600 transition w-full">
+        class="px-4 py-2 bg-red-500 text-white font-semibold rounded hover:bg-red-600 transition w-full">
         Log Out
     </button>
 </div>

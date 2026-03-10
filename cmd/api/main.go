@@ -167,6 +167,49 @@ func main() {
 		w.Write([]byte("Logged out successfully."))
 	})
 
+	// Create Group Route
+	http.HandleFunc("/groups", auth.RequireAuth(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		r.ParseForm()
+		groupName := r.FormValue("group_name")
+		if groupName == "" {
+			w.Write([]byte(`<p class="text-red-500 text-sm">Group name cannot be empty.</p>`))
+			return
+		}
+
+		// 1. Extract the secure User ID that the bouncer placed in the request context
+		userID := r.Context().Value(auth.UserIDKey).(uuid.UUID)
+
+		// 2. Call the transactional database function to create the group
+		group, err := db.CreateGroupAndJoin(groupName, userID)
+		if err != nil {
+			log.Println("Error creating group:", err)
+			w.Write([]byte(`<p class="text-red-500 text-sm">Database error. Please try again.</p>`))
+			return
+		}
+
+		// 3. Return the success HTML iwth the big, bold Invite Code
+		successHtml := fmt.Sprintf(`
+			<div class="p-4 bg-green-50 border border-green-200 rounded text-green-800 animate-fade-in">
+				<p class="font-bold">✅ Group Created!</p>
+				<p class="text-sm mt-1">Welcome to %s.</p>
+				
+				<div class="mt-4 p-3 bg-white rounded border border-green-200 text-center shadow-inner">
+					<p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Your Invite Code</p>
+					<p class="text-3xl font-mono font-black text-indigo-600 tracking-widest">%s</p>
+				</div>
+				<p class="text-xs text-gray-500 mt-3 text-center">Share this code with your roommates so they can join!</p>
+			</div>
+		`, group.Name, group.InviteCode)
+
+		w.Write([]byte(successHtml))
+
+	}))
+
 	// Protected Dashboard Route
 	http.HandleFunc("/dashboard", auth.RequireAuth(func(w http.ResponseWriter, r *http.Request) {
 		// Extract the securely validated UserID from the request context
