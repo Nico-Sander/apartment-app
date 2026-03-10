@@ -1,0 +1,14 @@
+{{define "content"}}
+<div class="p-8 max-w-md mx-auto mt-10 bg-indigo-50 rounded-xl shadow border border-indigo-100">
+    <h1 class="text-2xl font-bold text-indigo-800 mb-2">Welcome to the Secret Dashboard!</h1>
+    <p class="text-indigo-600">You bypassed the bouncer because your secure cookie is valid.</p>
+    <p class="mt-4 text-sm text-gray-500">Your verified Database UUID is:</p>
+
+    <p class="font-mono text-xs bg-white p-2 mt-1 rounded border border-gray-200">{{.}}</p>
+
+    <button hx-post="/logout"
+        class="mt-6 px-4 py-2 bg-red-500 text-white font-semibold rounded hover:bg-red-600 transition w-full">
+        Log Out
+    </button>
+</div>
+{{end}}

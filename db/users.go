@@ -42,3 +42,22 @@ func CreateUser(name, email, password string) (models.User, string, error) {
 	// Return the user struct, the token string, and no error
 	return user, token, err
 }
+
+// GetUserByEmail fetches a user by their email, including their pasoword hash
+func GetUserByEmail(email string) (models.User, error) {
+	var user models.User
+
+	query := `
+	SELECT id, name, email, password_hash
+	FROM users
+	WHERE email = $1;`
+
+	err := Pool.QueryRow(context.Background(), query, email).Scan(
+		&user.ID,
+		&user.Name,
+		&user.Email,
+		&user.PasswordHash,
+	)
+
+	return user, err
+}

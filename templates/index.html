@@ -20,6 +20,26 @@
         </button>
     </form>
 </div>
+<div class="mt-8 border-t border-gray-200 pt-6">
+    <h2 class="text-xl font-semibold text-gray-800 mb-2">Welcome Back</h2>
+    <p class="text-sm text-gray-500 mb-4">Log in to your account.</p>
+
+    <form hx-post="/login" hx-target="#login-result" hx-swap="innerHTML" class="flex flex-col gap-3">
+
+        <input type="email" name="email" placeholder="Email Address" required
+            class="px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+
+        <input type="password" name="password" placeholder="Password" required
+            class="px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
+
+        <button type="submit"
+            class="px-4 py-2 bg-gray-800 text-white font-semibold rounded hover:bg-gray-900 transition">
+            Log In
+        </button>
+    </form>
+</div>
+
+<div id="login-result" class="mt-4"></div>
 
 <div id="user-result" class="mt-4"></div>
 {{end}}
