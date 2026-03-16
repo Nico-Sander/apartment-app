@@ -20,7 +20,23 @@
 
         <div id="group-result" class="mt-4"></div>
     </div>
+    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-6">
+        <h2 class="text-lg font-bold text-gray-800 mb-2">Join an Apartment</h2>
+        <p class="text-sm text-gray-500 mb-4">Have an invite code from a roommate? Enter it here.</p>
 
+        <form hx-post="/groups/join" hx-target="#join-result" class="flex flex-col gap-3">
+
+            <input type="text" name="invite_code" placeholder="6-Character Code (e.g. A7X9WQ)" required maxlength="6"
+                class="px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500 uppercase">
+
+            <button type="submit"
+                class="px-4 py-2 bg-gray-800 text-white font-semibold rounded hover:bg-gray-900 transition">
+                Join Group
+            </button>
+        </form>
+
+        <div id="join-result" class="mt-4"></div>
+    </div>
     <button hx-post="/logout"
         class="px-4 py-2 bg-red-500 text-white font-semibold rounded hover:bg-red-600 transition w-full">
         Log Out

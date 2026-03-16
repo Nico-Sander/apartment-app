@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"crypto/rand"
+	"errors"
 	"math/big"
 
 	"apartment-app/models"
@@ -81,4 +82,37 @@ func CreateGroupAndJoin(groupName string, creatorID uuid.UUID) (models.Group, er
 	// 4. Commit the transaction
 	err = tx.Commit(ctx)
 	return group, err
+}
+
+// JoinGroupByCode looks up a group by its invite code and adds the user as a member
+func JoinGroupByCode(inviteCode string, userID uuid.UUID) (models.Group, error) {
+	var group models.Group
+	ctx := context.Background()
+
+	// 1. Find the group using the invite code
+	groupQuery := `
+		SELECT id, name, invite_code
+		FROM groups
+		WHERE invite_code = $1;`
+
+	err := Pool.QueryRow(ctx, groupQuery, inviteCode).Scan(
+		&group.ID,
+		&group.Name,
+		&group.InviteCode,
+	)
+	if err != nil {
+		return group, errors.New("invalid invite code")
+	}
+
+	// 2. Link the user to the group
+	memberQuery := `
+		INSERT INTO group_members (group_id, user_id)
+		VALUES ($1, $2);`
+
+	_, err = Pool.Exec(ctx, memberQuery, group.ID, userID)
+	if err != nil {
+		return group, errors.New("you are already a member of this group")
+	}
+
+	return group, nil
 }

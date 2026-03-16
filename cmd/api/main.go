@@ -210,6 +210,44 @@ func main() {
 
 	}))
 
+	// Join Group Route
+	http.HandleFunc("/groups/join", auth.RequireAuth(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		r.ParseForm()
+		inviteCode := r.FormValue("invite_code")
+		if len(inviteCode) != 6 {
+			w.Write([]byte(`<p class="text-red-500 text-sm font-medium">Invite code must be exactly 6 characters.</p>`))
+			return
+		}
+
+		// 1. Extract the secure User ID
+		userID := r.Context().Value(auth.UserIDKey).(uuid.UUID)
+
+		// 2. Call the database function
+		group, err := db.JoinGroupByCode(inviteCode, userID)
+		if err != nil {
+			// Print the specific error we returned from our DB function
+			errorHtml := fmt.Sprintf(`<p class="text-red-500 text-sm font-medium">Error: %s</p>`, err.Error())
+			w.Write([]byte(errorHtml))
+			return
+		}
+
+		// 3. Return the success message
+		successHtml := fmt.Sprintf(`
+			<div class="p-4 bg-green-50 border border-green-200 rounded text-green-800 animate-fade-in">
+				<p class="font-bold">✅ Successfully Joined!</p>
+				<p class="text-sm mt-1">You are now a member of <strong>%s</strong>.</p>
+			</div>
+		`, group.Name)
+
+		w.Write([]byte(successHtml))
+
+	}))
+
 	// Protected Dashboard Route
 	http.HandleFunc("/dashboard", auth.RequireAuth(func(w http.ResponseWriter, r *http.Request) {
 		// Extract the securely validated UserID from the request context
