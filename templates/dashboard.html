@@ -1,42 +1,78 @@
 {{define "content"}}
 <div class="p-8 max-w-md mx-auto mt-10 bg-indigo-50 rounded-xl shadow border border-indigo-100">
     <h1 class="text-2xl font-bold text-indigo-800 mb-1">Your Dashboard</h1>
-    <p class="text-xs text-indigo-400 font-mono mb-6">User ID: {{.}}</p>
+
+    <p class="text-xs text-indigo-400 font-mono mb-6">User ID: {{.UserID}}</p>
 
     <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-6">
         <h2 class="text-lg font-bold text-gray-800 mb-2">Create an Apartment</h2>
         <p class="text-sm text-gray-500 mb-4">Start a new group and invite your roommates.</p>
 
         <form hx-post="/groups" hx-target="#group-result" class="flex flex-col gap-3">
-
             <input type="text" name="group_name" placeholder="Apartment Name (e.g. The Batcave)" required
                 class="px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500">
-
             <button type="submit"
                 class="px-4 py-2 bg-indigo-600 text-white font-semibold rounded hover:bg-indigo-700 transition">
                 Create Group
             </button>
         </form>
-
         <div id="group-result" class="mt-4"></div>
     </div>
+
     <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-6">
         <h2 class="text-lg font-bold text-gray-800 mb-2">Join an Apartment</h2>
         <p class="text-sm text-gray-500 mb-4">Have an invite code from a roommate? Enter it here.</p>
 
         <form hx-post="/groups/join" hx-target="#join-result" class="flex flex-col gap-3">
-
             <input type="text" name="invite_code" placeholder="6-Character Code (e.g. A7X9WQ)" required maxlength="6"
                 class="px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500 uppercase">
-
             <button type="submit"
                 class="px-4 py-2 bg-gray-800 text-white font-semibold rounded hover:bg-gray-900 transition">
                 Join Group
             </button>
         </form>
-
         <div id="join-result" class="mt-4"></div>
     </div>
+
+    {{if .Groups}}
+    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mb-6 border-l-4 border-l-green-500">
+        <h2 class="text-lg font-bold text-gray-800 mb-2">Add a Chore to {{ (index .Groups 0).Name }}</h2>
+
+        <form hx-post="/chores" hx-target="#chore-result" class="flex flex-col gap-3">
+            <input type="hidden" name="group_id" value="{{ (index .Groups 0).ID }}">
+
+            <input type="text" name="title" placeholder="Chore Title (e.g. Take out Trash)" required
+                class="px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-green-500">
+
+            <input type="text" name="description" placeholder="Description (Optional)"
+                class="px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-green-500">
+
+            <div class="flex items-center gap-2 mt-2">
+                <input type="checkbox" name="is_recurring" id="is_recurring" class="w-4 h-4 text-green-600 rounded">
+                <label for="is_recurring" class="text-sm text-gray-700">Make this a recurring chore</label>
+            </div>
+
+            <select name="deadline_weekday"
+                class="px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-green-500 bg-white">
+                <option value="0">Due on Sunday</option>
+                <option value="1">Due on Monday</option>
+                <option value="2">Due on Tuesday</option>
+                <option value="3">Due on Wednesday</option>
+                <option value="4">Due on Thursday</option>
+                <option value="5">Due on Friday</option>
+                <option value="6">Due on Saturday</option>
+            </select>
+
+            <button type="submit"
+                class="px-4 py-2 bg-green-600 text-white font-semibold rounded hover:bg-green-700 transition">
+                Add Chore
+            </button>
+        </form>
+
+        <div id="chore-result" class="mt-4"></div>
+    </div>
+    {{end}}
+
     <button hx-post="/logout"
         class="px-4 py-2 bg-red-500 text-white font-semibold rounded hover:bg-red-600 transition w-full">
         Log Out

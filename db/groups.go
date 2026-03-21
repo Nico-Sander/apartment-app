@@ -116,3 +116,28 @@ func JoinGroupByCode(inviteCode string, userID uuid.UUID) (models.Group, error) 
 
 	return group, nil
 }
+
+// GetUserGroups fetches all groups a specific user is a member of
+func GetUserGroups(userID uuid.UUID) ([]models.Group, error) {
+	var groups []models.Group
+
+	query := `
+		SELECT g.id, g.name, g.invite_code 
+		FROM groups g
+		JOIN group_members gm ON g.id = gm.group_id
+		WHERE gm.user_id = $1;`
+
+	rows, err := Pool.Query(context.Background(), query, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		var group models.Group
+		if err := rows.Scan(&group.ID, &group.Name, &group.InviteCode); err != nil {
+			return nil, err
+		}
+		groups = append(groups, group)
+	}
+	return groups, nil
+}

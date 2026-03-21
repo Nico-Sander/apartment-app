@@ -31,8 +31,16 @@ type Expense struct {
 type Chore struct {
 	ID          uuid.UUID `json:"id"`
 	GroupID     uuid.UUID `json:"group_id"`
-	AssignedTo  uuid.UUID `json:"assigned_to_id"`
 	Title       string    `json:"title"`
-	IsCompleted bool      `json:"is_completed"`
-	DueDate     time.Time `json:"due_date"`
+	Description string    `json:"description"`
+
+	// We use a pointer (*uuid.UUID) because this field can be NULL in the database!
+	// If nobody is assigned, this will be nil.
+	AssignedTo *uuid.UUID `json:"assigned_to"`
+
+	IsRecurring     bool      `json:"is_recurring"`
+	IntervalUnit    string    `json:"interval_unit"`
+	DeadlineWeekday int       `json:"deadline_weekday"`
+	DueDate         time.Time `json:"due_date"`
+	Status          string    `json:"status"`
 }

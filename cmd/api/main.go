@@ -9,6 +9,7 @@ import (
 
 	"apartment-app/auth"
 	"apartment-app/db"
+	"apartment-app/models"
 
 	"github.com/google/uuid"
 	"github.com/joho/godotenv"
@@ -248,13 +249,58 @@ func main() {
 
 	}))
 
+	// Create Chore Route
+	http.HandleFunc("/chores", auth.RequireAuth(func(w http.ResponseWriter, r *http.Request) {
+		r.ParseForm()
+
+		// Parse the form values
+		groupIDStr := r.FormValue("group_id")
+		groupID, _ := uuid.Parse(groupIDStr)
+		title := r.FormValue("title")
+		description := r.FormValue("description")
+
+		// Checkboxes send "on" if checked, otherwise empty
+		isRecurring := r.FormValue("is_recurring") == "on"
+
+		// Convert the weekday string to an integer
+		deadlineStr := r.FormValue("deadline_weekday")
+		deadlineWeekday := 0
+		fmt.Sscanf(deadlineStr, "%d", &deadlineWeekday)
+
+		// For MVP testing, we are leaving it unassigned (nil pointer) and interval unit hardcoded to 'week'
+		chore, err := db.CreateChore(groupID, title, description, nil, isRecurring, "week", deadlineWeekday)
+		if err != nil {
+			w.Write([]byte(`<p class="text-red-500">Failed to create chore.</p>`))
+			return
+		}
+
+		successHtml := fmt.Sprintf(`<p class="text-green-600 font-bold">✅ Chore '%s' added! Due date calculated as: %s</p>`,
+			chore.Title, chore.DueDate.Format("Mon, Jan 02"))
+		w.Write([]byte(successHtml))
+	}))
+
 	// Protected Dashboard Route
 	http.HandleFunc("/dashboard", auth.RequireAuth(func(w http.ResponseWriter, r *http.Request) {
-		// Extract the securely validated UserID from the request context
 		userID := r.Context().Value(auth.UserIDKey).(uuid.UUID)
 
-		// Execute the dashboard template and pass the userID into the HTML
-		err := dashboardTmpl.ExecuteTemplate(w, "base.html", userID.String())
+		// NEW: Fetch the groups for this user
+		groups, err := db.GetUserGroups(userID)
+		if err != nil {
+			http.Error(w, "Failed to load groups", http.StatusInternalServerError)
+			return
+		}
+
+		// Create a struct to pass multiple pieces of data to the HTML template
+		data := struct {
+			UserID string
+			Groups []models.Group
+		}{
+			UserID: userID.String(),
+			Groups: groups,
+		}
+
+		// Execute the template, passing in our new data struct
+		err = dashboardTmpl.ExecuteTemplate(w, "base.html", data)
 		if err != nil {
 			http.Error(w, "Template Error", http.StatusInternalServerError)
 		}
