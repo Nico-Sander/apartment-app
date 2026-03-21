@@ -42,3 +42,33 @@ func CreateChore(groupID uuid.UUID, title, description string, assignedTo *uuid.
 
 	return chore, err
 }
+
+// GetChoresByGroup fetches all chores for a specific group, sorted by due date
+func GetChoresByGroup(groupID uuid.UUID) ([]models.Chore, error) {
+	var chores []models.Chore
+
+	// Order by due_date ASC so the closest deadline are at the top
+	query := `
+		SELECT id, title, description, is_recurring, due_date, status 
+		FROM chores 
+		WHERE group_id = $1 
+		ORDER BY due_date ASC;`
+
+	rows, err := Pool.Query(context.Background(), query, groupID)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		var c models.Chore
+		// Scan the row into the chore struct
+		err := rows.Scan(&c.ID, &c.Title, &c.Description, &c.IsRecurring, &c.DueDate, &c.Status)
+		if err != nil {
+			return nil, err
+		}
+		chores = append(chores, c)
+	}
+	return chores, nil
+}

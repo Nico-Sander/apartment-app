@@ -4,6 +4,8 @@ import (
 	"apartment-app/auth"
 	"apartment-app/models"
 	"context"
+
+	"github.com/google/uuid"
 )
 
 // CraeteUser inserts a new user into the database and returns the created user (with their new UUID)
@@ -59,5 +61,13 @@ func GetUserByEmail(email string) (models.User, error) {
 		&user.PasswordHash,
 	)
 
+	return user, err
+}
+
+// GetUserByID fetches a user's details (like their name) using their UUID
+func GetUserByID(id uuid.UUID) (models.User, error) {
+	var user models.User
+	query := `SELECT id, name, email FROM users WHERE id = $1;`
+	err := Pool.QueryRow(context.Background(), query, id).Scan(&user.ID, &user.Name, &user.Email)
 	return user, err
 }

@@ -30,9 +30,12 @@ func main() {
 	fs := http.FileServer(http.Dir("static"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
 
-	// 4. Parse Templates into seperate variables
+	// 4. Parse Templates
 	indexTmpl := template.Must(template.ParseFiles("templates/base.html", "templates/index.html"))
 	dashboardTmpl := template.Must(template.ParseFiles("templates/base.html", "templates/dashboard.html"))
+	createGroupTmpl := template.Must(template.ParseFiles("templates/base.html", "templates/create_group.html"))
+	joinGroupTmpl := template.Must(template.ParseFiles("templates/base.html", "templates/join_group.html"))
+	groupTmpl := template.Must(template.ParseFiles("templates/base.html", "templates/group.html"))
 
 	// 5. Routes
 
@@ -212,7 +215,7 @@ func main() {
 	}))
 
 	// Join Group Route
-	http.HandleFunc("/groups/join", auth.RequireAuth(func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("POST /groups/join", auth.RequireAuth(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 			return
@@ -283,27 +286,60 @@ func main() {
 	http.HandleFunc("/dashboard", auth.RequireAuth(func(w http.ResponseWriter, r *http.Request) {
 		userID := r.Context().Value(auth.UserIDKey).(uuid.UUID)
 
-		// NEW: Fetch the groups for this user
-		groups, err := db.GetUserGroups(userID)
-		if err != nil {
-			http.Error(w, "Failed to load groups", http.StatusInternalServerError)
-			return
-		}
+		user, _ := db.GetUserByID(userID) // Fetch the user's name!
+		groups, _ := db.GetUserGroups(userID)
 
-		// Create a struct to pass multiple pieces of data to the HTML template
 		data := struct {
-			UserID string
+			User   models.User
 			Groups []models.Group
 		}{
-			UserID: userID.String(),
+			User:   user,
 			Groups: groups,
 		}
 
-		// Execute the template, passing in our new data struct
-		err = dashboardTmpl.ExecuteTemplate(w, "base.html", data)
-		if err != nil {
-			http.Error(w, "Template Error", http.StatusInternalServerError)
+		dashboardTmpl.ExecuteTemplate(w, "base.html", data)
+	}))
+
+	// Page: Create Group
+	http.HandleFunc("/groups/create", auth.RequireAuth(func(w http.ResponseWriter, r *http.Request) {
+		createGroupTmpl.ExecuteTemplate(w, "base.html", nil)
+	}))
+
+	// Page: Join Group (Displays the HTML form)
+	http.HandleFunc("GET /groups/join", auth.RequireAuth(func(w http.ResponseWriter, r *http.Request) {
+		joinGroupTmpl.ExecuteTemplate(w, "base.html", nil)
+	}))
+
+	// Page: View Specific Group
+	http.HandleFunc("/group", auth.RequireAuth(func(w http.ResponseWriter, r *http.Request) {
+		// Get the ?id=... from the URL
+		groupIDStr := r.URL.Query().Get("id")
+
+		// Note: In a real app, you would verify the user actually belongs to this group!
+		// For now, we will just fetch the group details from the user's list.
+		userID := r.Context().Value(auth.UserIDKey).(uuid.UUID)
+		groups, _ := db.GetUserGroups(userID)
+
+		var currentGroup models.Group
+		for _, g := range groups {
+			if g.ID.String() == groupIDStr {
+				currentGroup = g
+				break
+			}
 		}
+
+		// Fetch the chorer for this group
+		chores, _ := db.GetChoresByGroup(currentGroup.ID)
+
+		data := struct {
+			Group  models.Group
+			Chores []models.Chore
+		}{
+			Group:  currentGroup,
+			Chores: chores,
+		}
+
+		groupTmpl.ExecuteTemplate(w, "base.html", data)
 	}))
 
 	// 6. Start Server

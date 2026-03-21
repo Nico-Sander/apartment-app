@@ -1,0 +1,77 @@
+{{define "content"}}
+<div class="max-w-4xl mx-auto mt-10">
+    <a href="/dashboard" class="text-sm text-indigo-600 hover:underline mb-4 inline-block">&larr; Back to Dashboard</a>
+
+    <div class="flex justify-between items-end mb-6">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-800">{{.Group.Name}}</h1>
+            <p class="text-sm text-gray-500 mt-1">Invite Code: <span
+                    class="font-mono bg-white px-2 py-1 rounded border">{{.Group.InviteCode}}</span></p>
+        </div>
+    </div>
+
+    <div class="mb-8">
+        <h2 class="text-xl font-bold text-gray-800 mb-4">Upcoming Chores</h2>
+
+        {{if .Chores}}
+        <div class="flex flex-col gap-3">
+            {{range .Chores}}
+            <div class="flex justify-between items-center p-4 bg-white rounded-lg shadow-sm border border-gray-200">
+                <div>
+                    <h3 class="font-bold text-gray-800">{{.Title}}</h3>
+                    {{if .Description}}
+                    <p class="text-sm text-gray-500">{{.Description}}</p>
+                    {{end}}
+
+                    <div class="flex items-center gap-2 mt-2">
+                        <span
+                            class="text-xs font-semibold px-2 py-1 bg-indigo-50 text-indigo-700 rounded border border-indigo-100">
+                            Due: {{.DueDate.Format "Mon, Jan 02"}}
+                        </span>
+
+                        {{if .IsRecurring}}
+                        <span
+                            class="text-xs font-semibold px-2 py-1 bg-blue-50 text-blue-700 rounded border border-blue-100">
+                            ↻ Recurring
+                        </span>
+                        {{end}}
+                    </div>
+                </div>
+
+                <button
+                    class="px-4 py-2 border border-gray-300 text-gray-600 font-semibold rounded hover:bg-green-50 hover:text-green-700 hover:border-green-300 transition">
+                    Mark Done
+                </button>
+            </div>
+            {{end}}
+        </div>
+        {{else}}
+        <div class="p-6 bg-gray-50 rounded-lg border border-dashed border-gray-300 text-center">
+            <p class="text-gray-500">No chores have been added yet. You are off the hook!</p>
+        </div>
+        {{end}}
+    </div>
+
+    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 border-l-4 border-l-green-500">
+
+        <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 border-l-4 border-l-green-500">
+            <h2 class="text-lg font-bold text-gray-800 mb-4">Add a New Chore</h2>
+            <form hx-post="/chores" hx-target="#chore-result" class="flex flex-col gap-3">
+                <input type="hidden" name="group_id" value="{{.Group.ID}}">
+                <input type="text" name="title" placeholder="Chore Title" required class="px-4 py-2 border rounded">
+                <input type="text" name="description" placeholder="Description (Optional)"
+                    class="px-4 py-2 border rounded">
+                <select name="deadline_weekday" class="px-4 py-2 border rounded bg-white">
+                    <option value="0">Due on Sunday</option>
+                    <option value="1">Due on Monday</option>
+                    <option value="2">Due on Tuesday</option>
+                    <option value="6">Due on Saturday</option>
+                </select>
+                <button type="submit"
+                    class="px-4 py-2 bg-green-600 text-white font-semibold rounded hover:bg-green-700">Add
+                    Chore</button>
+            </form>
+            <div id="chore-result" class="mt-4"></div>
+        </div>
+    </div>
+    {{end}}
