@@ -38,7 +38,7 @@
                     </div>
                 </div>
 
-                <button
+                <button hx-post="/chores/complete?id={{.ID}}" hx-swap="none"
                     class="px-4 py-2 border border-gray-300 text-gray-600 font-semibold rounded hover:bg-green-50 hover:text-green-700 hover:border-green-300 transition">
                     Mark Done
                 </button>
@@ -56,22 +56,31 @@
 
         <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 border-l-4 border-l-green-500">
             <h2 class="text-lg font-bold text-gray-800 mb-4">Add a New Chore</h2>
-            <form hx-post="/chores" hx-target="#chore-result" class="flex flex-col gap-3">
+            <form hx-post="/chores" hx-on::after-request="if(event.detail.successful) this.reset()" autocomplete="off"
+                class="flex flex-col gap-3">
                 <input type="hidden" name="group_id" value="{{.Group.ID}}">
                 <input type="text" name="title" placeholder="Chore Title" required class="px-4 py-2 border rounded">
                 <input type="text" name="description" placeholder="Description (Optional)"
                     class="px-4 py-2 border rounded">
+
+                <div class="flex items-center gap-2 mt-2 mb-2">
+                    <input type="checkbox" name="is_recurring" id="is_recurring" class="w-4 h-4 text-green-600 rounded">
+                    <label for="is_recurring" class="text-sm text-gray-700">Make this a recurring chore</label>
+                </div>
+
                 <select name="deadline_weekday" class="px-4 py-2 border rounded bg-white">
                     <option value="0">Due on Sunday</option>
                     <option value="1">Due on Monday</option>
                     <option value="2">Due on Tuesday</option>
+                    <option value="3">Due on Wednesday</option>
+                    <option value="4">Due on Thursday</option>
+                    <option value="5">Due on Friday</option>
                     <option value="6">Due on Saturday</option>
                 </select>
                 <button type="submit"
                     class="px-4 py-2 bg-green-600 text-white font-semibold rounded hover:bg-green-700">Add
                     Chore</button>
             </form>
-            <div id="chore-result" class="mt-4"></div>
         </div>
     </div>
     {{end}}

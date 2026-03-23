@@ -51,7 +51,7 @@ func GetChoresByGroup(groupID uuid.UUID) ([]models.Chore, error) {
 	query := `
 		SELECT id, title, description, is_recurring, due_date, status 
 		FROM chores 
-		WHERE group_id = $1 
+		WHERE group_id = $1 AND status != 'completed' 
 		ORDER BY due_date ASC;`
 
 	rows, err := Pool.Query(context.Background(), query, groupID)
@@ -71,4 +71,27 @@ func GetChoresByGroup(groupID uuid.UUID) ([]models.Chore, error) {
 		chores = append(chores, c)
 	}
 	return chores, nil
+}
+
+// CompleteChore marks a chore as done, or pushes its due date forward if it is a recurring chore
+func CompleteChore(choreID uuid.UUID) error {
+	var isRecurring bool
+
+	// 1. Check if the chore is recurring
+	err := Pool.QueryRow(context.Background(), "SELECT is_recurring FROM chores WHERE id = $1", choreID).Scan(&isRecurring)
+	if err != nil {
+		return err
+	}
+
+	if isRecurring {
+		// 2. If it is recurring, simply push the due date forward by 1 week using Postgres date math
+		query := `UPDATE chores SET due_date = (due_date + interval '1 week')::date WHERE id = $1;`
+		_, err := Pool.Exec(context.Background(), query, choreID)
+		return err
+	}
+
+	// 3. If it's a one-time chore, mark it as completed
+	query := `UPDATE chores SET status = 'completed' WHERE id = $1;`
+	_, err = Pool.Exec(context.Background(), query, choreID)
+	return err
 }

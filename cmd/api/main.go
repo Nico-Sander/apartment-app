@@ -270,16 +270,16 @@ func main() {
 		deadlineWeekday := 0
 		fmt.Sscanf(deadlineStr, "%d", &deadlineWeekday)
 
-		// For MVP testing, we are leaving it unassigned (nil pointer) and interval unit hardcoded to 'week'
-		chore, err := db.CreateChore(groupID, title, description, nil, isRecurring, "week", deadlineWeekday)
+		// Create the chore in the DB
+		_, err := db.CreateChore(groupID, title, description, nil, isRecurring, "week", deadlineWeekday)
 		if err != nil {
+			log.Printf("Error: Failed to create chore in DB: %v\n", err)
 			w.Write([]byte(`<p class="text-red-500">Failed to create chore.</p>`))
 			return
 		}
 
-		successHtml := fmt.Sprintf(`<p class="text-green-600 font-bold">✅ Chore '%s' added! Due date calculated as: %s</p>`,
-			chore.Title, chore.DueDate.Format("Mon, Jan 02"))
-		w.Write([]byte(successHtml))
+		// Silently reload the page to refreshe the chores list
+		w.Header().Set("HX-Refresh", "true")
 	}))
 
 	// Protected Dashboard Route
@@ -340,6 +340,29 @@ func main() {
 		}
 
 		groupTmpl.ExecuteTemplate(w, "base.html", data)
+	}))
+
+	// Mark Chore Complete Route
+	http.HandleFunc("POST /chores/complete", auth.RequireAuth(func(w http.ResponseWriter, r *http.Request) {
+		// Grab the chore ID from the URL (e.g., /chores/complete?id=1234-5678)
+		choreIDStr := r.URL.Query().Get("id")
+		choreID, err := uuid.Parse(choreIDStr)
+		if err != nil {
+			http.Error(w, "Invalid Chore ID", http.StatusBadRequest)
+			return
+		}
+
+		// Call the databsae function
+		err = db.CompleteChore(choreID)
+		if err != nil {
+			log.Printf("Error: Database Error in CompleteChore: %v\n", err)
+			http.Error(w, "Database error", http.StatusInternalServerError)
+			return
+		}
+
+		// Tell HTMX to instantly reload the page so the sorted list updates automatically
+		w.Header().Set("HX-Refresh", "true")
+		w.Write([]byte("Done"))
 	}))
 
 	// 6. Start Server
